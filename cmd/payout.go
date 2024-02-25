@@ -41,7 +41,7 @@ var payoutCmd = &cobra.Command{
 			log.Fatal("Error from orders request: ", err)
 		}
 
-		fmt.Println("JSON: ", string(*jsonStr))
+		fmt.Println(string(*jsonStr))
 
 		return nil
 	},
