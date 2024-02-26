@@ -13,21 +13,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type PayoutSummaryDetails struct {
-	client.PayoutSummary
-}
-
-type PayoutSummaryList struct {
-	PayoutSummaryDetails `json:"payout_summary_details,omitempty"`
-}
-
-type PayoutSummaryResult struct {
-	client.PayoutSummaryError
-	PayoutSummaryList `json:"payout_summary_list,omitempty"`
-}
-
 type PayoutResponse struct {
-	PayoutSummaryResult `json:"payout_summary_result,omitempty"`
+	PayoutSummaryResult struct {
+		client.PayoutSummaryError
+		PayoutSummaryList struct {
+			PayoutSummaryDetails struct {
+				client.PayoutSummary
+			} `json:"payout_summary_details,omitempty"`
+		} `json:"payout_summary_list,omitempty"`
+	} `json:"payout_summary_result,omitempty"`
 }
 
 // payoutCmd represents the payout command
@@ -63,7 +57,7 @@ var payoutCmd = &cobra.Command{
 			return fmt.Errorf("error unmarshaling into payout: %w", err)
 		}
 
-		fmt.Printf("%+v", payout)
+		fmt.Printf("%+v\n", payout)
 
 		return nil
 	},
