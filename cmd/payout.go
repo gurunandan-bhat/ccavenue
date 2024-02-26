@@ -6,12 +6,29 @@ package cmd
 import (
 	"ccavenue/client"
 	"ccavenue/config"
+	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/spf13/cobra"
 )
+
+type PayoutSummaryDetails struct {
+	client.PayoutSummary
+}
+
+type PayoutSummaryList struct {
+	PayoutSummaryDetails `json:"payout_summary_details,omitempty"`
+}
+
+type PayoutSummaryResult struct {
+	client.PayoutSummaryError
+	PayoutSummaryList `json:"payout_summary_list,omitempty"`
+}
+
+type PayoutResponse struct {
+	PayoutSummaryResult `json:"payout_summary_result,omitempty"`
+}
 
 // payoutCmd represents the payout command
 var payoutCmd = &cobra.Command{
@@ -36,12 +53,17 @@ var payoutCmd = &cobra.Command{
 			SettlementDate: dateStr,
 		}
 
-		jsonStr, err := ccavClient.Post(filter)
+		jsonBytes, err := ccavClient.Post(filter)
 		if err != nil {
-			log.Fatal("Error from orders request: ", err)
+			return fmt.Errorf("error from payout request: %w", err)
 		}
 
-		fmt.Println(string(*jsonStr))
+		payout := PayoutResponse{}
+		if err := json.Unmarshal(*jsonBytes, &payout); err != nil {
+			return fmt.Errorf("error unmarshaling into payout: %w", err)
+		}
+
+		fmt.Printf("%+v", payout)
 
 		return nil
 	},
