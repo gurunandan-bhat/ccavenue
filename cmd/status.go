@@ -6,12 +6,18 @@ package cmd
 import (
 	"ccavenue/client"
 	"ccavenue/config"
+	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/spf13/cobra"
 )
+
+type StatusResponse struct {
+	client.Order
+	client.OrderValue
+	client.OrderError
+}
 
 // statusCmd represents the status command
 var statusCmd = &cobra.Command{
@@ -21,24 +27,28 @@ var statusCmd = &cobra.Command{
 		orderID, _ := cmd.Flags().GetInt32("order-id")
 		cfg, err := config.Configuration()
 		if err != nil {
-			log.Fatalf("Error reading configuration: %s", err)
+			return fmt.Errorf("error reading configuration: %w", err)
 		}
 		ccavClient, err := client.NewClient(cfg, "1.2")
 		if err != nil {
-			log.Fatal("Error creating client: ", err)
+			return fmt.Errorf("error creating client: %w", err)
 		}
 
 		filter := client.StatusFilter{
 			OrderNo: strconv.Itoa(int(orderID)),
 		}
 
-		jsonStr, err := ccavClient.Post(filter)
+		jsonBytes, err := ccavClient.Post(filter)
 		if err != nil {
-			log.Fatal("Error from orders request: ", err)
+			return fmt.Errorf("error from orders request: %w", err)
 		}
 
-		fmt.Println(string(*jsonStr))
+		status := StatusResponse{}
+		if err := json.Unmarshal(*jsonBytes, &status); err != nil {
+			return fmt.Errorf("error parsing status JSON: %w", err)
+		}
 
+		fmt.Printf("%+v\n", status)
 		return nil
 	},
 }
