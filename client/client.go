@@ -94,7 +94,7 @@ func (c *APIClient) Post(f Filter) (*[]byte, error) {
 			return nil, fmt.Errorf("invalid encrypted response: %v, %d\n %+v", ok, len(encArr), encArr)
 		}
 
-		respStr, err := decode(encArr[0])
+		respStr, err := c.Decode(encArr[0])
 		if err != nil {
 			return nil, err
 		}
@@ -105,7 +105,7 @@ func (c *APIClient) Post(f Filter) (*[]byte, error) {
 	return nil, fmt.Errorf("error parsing response%s", fmt.Sprintf("%+v", values))
 }
 
-func decode(encStr string) (*[]byte, error) {
+func (c *APIClient) Decode(encStr string) (*[]byte, error) {
 
 	payload := strings.TrimSpace(encStr)
 	buf, err := hex.DecodeString(payload)
